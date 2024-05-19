@@ -1,94 +1,110 @@
-import Image from "next/image";
+"use client";
+
 import styles from "./page.module.css";
+import { ChangeEvent, useState } from "react";
+import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
+import { Buffer } from "buffer";
 
 export default function Home() {
+  const [text, setText] = useState("");
+  const [secret, setSecret] = useState("");
+
+  const handleOnMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const value = event.target.value;
+    setText(value);
+  };
+
+  const handleOnSecretChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSecret(value);
+  };
+
+  const isValidSecretLength = () => {
+    if (secret.length != 16) {
+      window.alert("Secret must be exactly 16 characters long.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleEncryption = () => {
+    if (!isValidSecretLength()) {
+      return;
+    }
+
+    const secretBuffer = Buffer.from(secret, "utf8");
+    const initializationVector = randomBytes(16);
+    const cipher = createCipheriv(
+      "aes-128-cbc",
+      secretBuffer,
+      initializationVector
+    );
+
+    const encryptedText = `${initializationVector.toString("base64")}:${(
+      cipher.update(text, "utf8", "base64") + cipher.final("base64")
+    ).toString()}`;
+
+    navigator.clipboard.writeText(encryptedText);
+    window.alert("Encrypted text copied to clipboard!");
+  };
+
+  const handleDecryption = () => {
+    if (!isValidSecretLength()) {
+      return;
+    }
+
+    try {
+      const secretBuffer = Buffer.from(secret, "utf8");
+      const [initializationVector, encryptedValue] = text.split(":");
+      const decipher = createDecipheriv(
+        "aes-128-cbc",
+        secretBuffer,
+        Buffer.from(initializationVector, "base64")
+      );
+
+      const decryptedText = Buffer.concat([
+        decipher.update(Buffer.from(encryptedValue, "base64")),
+        decipher.final(),
+      ]).toString();
+
+      navigator.clipboard.writeText(decryptedText);
+      window.alert("Decrypted text copied to clipboard!");
+    } catch (e: any) {
+      if (e.message === "unable to decrypt data") {
+        window.alert("Wrong secret");
+        return;
+      }
+      window.alert(e.message);
+    }
+  };
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <div className={styles.container}>
+        <h1>Secret</h1>
+        <input
+          className={styles.input}
+          value={secret}
+          onInput={handleOnSecretChange}
         />
+        <span>{`Secret length: ${secret.length}`}</span>
       </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className={styles.container}>
+        <h1>Message</h1>
+        <textarea
+          className={styles.textarea}
+          value={text}
+          onChange={handleOnMessageChange}
+        />
+        <div>
+          <button className={styles.button} onClick={handleEncryption}>
+            Encrypt
+          </button>
+          <button className={styles.button} onClick={handleDecryption}>
+            Decrypt
+          </button>
+        </div>
       </div>
     </main>
   );
