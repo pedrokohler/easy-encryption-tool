@@ -7,6 +7,7 @@ import { Buffer } from "buffer";
 
 export default function Home() {
   const [text, setText] = useState("");
+  const [result, setResult] = useState("");
   const [secret, setSecret] = useState("");
 
   const handleOnMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -45,8 +46,7 @@ export default function Home() {
       cipher.update(text, "utf8", "base64") + cipher.final("base64")
     ).toString()}`;
 
-    navigator.clipboard.writeText(encryptedText);
-    window.alert("Encrypted text copied to clipboard!");
+    setResult(encryptedText);
   };
 
   const handleDecryption = () => {
@@ -68,8 +68,7 @@ export default function Home() {
         decipher.final(),
       ]).toString();
 
-      navigator.clipboard.writeText(decryptedText);
-      window.alert("Decrypted text copied to clipboard!");
+      setResult(decryptedText);
     } catch (e: any) {
       if (e.message === "unable to decrypt data") {
         window.alert("Wrong secret");
@@ -90,20 +89,26 @@ export default function Home() {
         />
         <span>{`Secret length: ${secret.length}`}</span>
       </div>
-      <div className={styles.container}>
-        <h1>Message</h1>
-        <textarea
-          className={styles.textarea}
-          value={text}
-          onChange={handleOnMessageChange}
-        />
-        <div>
-          <button className={styles.button} onClick={handleEncryption}>
-            Encrypt
-          </button>
-          <button className={styles.button} onClick={handleDecryption}>
-            Decrypt
-          </button>
+      <div className={styles.splitContainer}>
+        <div className={styles.splitContainerContent}>
+          <h1>Message</h1>
+          <textarea
+            className={styles.textarea}
+            value={text}
+            onChange={handleOnMessageChange}
+          />
+          <div>
+            <button className={styles.button} onClick={handleEncryption}>
+              Encrypt
+            </button>
+            <button className={styles.button} onClick={handleDecryption}>
+              Decrypt
+            </button>
+          </div>
+        </div>
+        <div className={styles.splitContainerContent}>
+          <h1>Result</h1>
+          <textarea className={styles.textarea} value={result} disabled />
         </div>
       </div>
     </main>
