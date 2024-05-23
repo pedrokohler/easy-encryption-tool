@@ -9,6 +9,7 @@ export default function Home() {
   const [text, setText] = useState("");
   const [result, setResult] = useState("");
   const [secret, setSecret] = useState("");
+  const [secretByteLength, setSecretByteLength] = useState(0)
 
   const handleOnMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -17,12 +18,14 @@ export default function Home() {
 
   const handleOnSecretChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
+    const secretBuffer = Buffer.from(value, "utf8");
+    setSecretByteLength(secretBuffer.length);
     setSecret(value);
   };
 
   const isValidSecretLength = () => {
-    if (secret.length != 16) {
-      window.alert("Secret must be exactly 16 characters long.");
+    if (secretByteLength != 16) {
+      window.alert("Secret must be exactly 16 bytes long.\nTip: typically one character = 1 byte, but there are exceptions.");
       return false;
     }
 
@@ -70,11 +73,17 @@ export default function Home() {
 
       setResult(decryptedText);
     } catch (e: any) {
-      if (e.message === "unable to decrypt data") {
-        window.alert("Wrong secret");
-        return;
+      switch(true){
+        case e.message === "unable to decrypt data": {
+          window.alert("Wrong secret");
+          return;
+        }
+        case /invalid iv length/.test(e.message):{
+          window.alert("Invalid encrypted message format");
+          return;
+        }
+        default: window.alert(e.message)
       }
-      window.alert(e.message);
     }
   };
 
@@ -87,7 +96,7 @@ export default function Home() {
           value={secret}
           onInput={handleOnSecretChange}
         />
-        <span>{`Secret length: ${secret.length}`}</span>
+        <span>{`Byte length: ${secretByteLength}`}</span>
       </div>
       <div className={styles.splitContainer}>
         <div className={styles.splitContainerContent}>
