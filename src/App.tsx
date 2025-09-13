@@ -2,12 +2,16 @@ import React, { ChangeEvent, useState } from "react";
 import styles from "./App.module.css";
 import { encrypt as encryptModern, decrypt as decryptAny } from "./crypto";
 import type { DecryptError } from "./crypto/types";
+import { estimateStrength, type StrengthResult } from "./security/strength";
 
 export default function App() {
   const [text, setText] = useState("");
   const [result, setResult] = useState("");
   const [secret, setSecret] = useState("");
   const [secretByteLength, setSecretByteLength] = useState(0);
+  const [strength, setStrength] = useState<StrengthResult>(() =>
+    estimateStrength("")
+  );
 
   const handleOnMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -19,6 +23,7 @@ export default function App() {
     const secretBytes = new TextEncoder().encode(value);
     setSecretByteLength(secretBytes.length);
     setSecret(value);
+    setStrength(estimateStrength(value));
   };
 
   const handleEncryption = async () => {
@@ -65,6 +70,24 @@ export default function App() {
           value={secret}
           onChange={handleOnSecretChange}
         />
+        <div className={styles.meterContainer}>
+          <div
+            className={styles.meterFill}
+            style={{
+              width: `${[5, 25, 50, 75, 100][strength.score]}%`,
+              backgroundColor: [
+                "#e74c3c",
+                "#e67e22",
+                "#f1c40f",
+                "#2ecc71",
+                "#27ae60",
+              ][strength.score],
+            }}
+          />
+        </div>
+        <div className={styles.meterLabel}>{`Strength: ${
+          strength.label
+        } (${Math.round(strength.entropyBits)} bits est.)`}</div>
         <span>{`Byte length: ${secretByteLength}`}</span>
         <span>
           New messages use AES-GCM with PBKDF2. Legacy AES-CBC messages still

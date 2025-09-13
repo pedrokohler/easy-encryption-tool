@@ -51,3 +51,23 @@
   margin: 10px 5px 0 5px;
   cursor: pointer;
 }
+
+.meterContainer {
+  width: 200px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.meterFill {
+  height: 100%;
+  transition: width 150ms ease-in-out, background-color 150ms ease-in-out;
+}
+
+.meterLabel {
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}

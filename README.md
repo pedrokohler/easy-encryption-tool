@@ -9,6 +9,7 @@ All encryption runs entirely in your browser (no servers, no network), so you ca
 - Default encryption now uses AES-GCM with PBKDF2 key derivation from your passphrase (no fixed length required).
 - Ciphertext format is versioned as `v1:<b64 salt>:<b64 iv>:<b64 ciphertext>`.
 - Backwards compatible decryption: legacy AES-CBC messages still decrypt seamlessly.
+- Password strength meter: see real-time feedback while typing your secret.
 
 ### Legacy Compatibility
 
