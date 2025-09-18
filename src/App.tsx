@@ -102,7 +102,7 @@ export default function App() {
             value={text}
             onChange={handleOnMessageChange}
           />
-          <div>
+          <div className={styles.controls}>
             <button className={styles.button} onClick={handleEncryption}>
               Encrypt
             </button>
@@ -114,6 +114,7 @@ export default function App() {
         <div className={styles.splitContainerContent}>
           <h1>Result</h1>
           <textarea className={styles.textarea} value={result} readOnly />
+          <div className={styles.controlsPlaceholder} aria-hidden="true" />
         </div>
       </div>
     </main>
